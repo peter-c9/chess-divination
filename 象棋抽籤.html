@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="color-scheme" content="only light">
+<title>象棋卜卦 - 緊湊視覺版</title>
+<style>
+  :root { 
+    --board-bg: #f2c029; 
+    --line-color: #000000; 
+    --piece-white: #ffffff;
+  }
+  body { font-family: "Microsoft JhengHei", "Kaiti", "BiauKai", serif; background: #121212 !important; color: #e0e0e0 !important; padding: 20px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+  
+  .main-container { width: 100%; max-width: 400px; }
+
+  /* 32數字面板 */
+  .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 20px; }
+  .card { width: 100%; aspect-ratio: 1/1; background: #333; color: #fff; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: bold; position: relative; font-size: 14px; }
+  .card .seq { position: absolute; top: -5px; right: -5px; background: #FF3D00; color: #fff; font-size: 11px; width: 18px; height: 18px; line-height: 18px; border-radius: 50%; display: none; z-index: 10; font-weight: 900; border: 1px solid white; box-shadow: 0 0 3px #000; }
+  .card.revealed { background: #444; pointer-events: none; border-color: #666; color: #888; }
+  .card.revealed .seq { display: block; }
+
+  /* 截圖區包裝 */
+  .screenshot-area { background: #1e1e1e !important; padding: 20px; border-radius: 12px; border: 2px solid #444; width: 100%; box-sizing: border-box; margin-bottom: 15px; display: flex; flex-direction: column; }
+
+  /* 修正：縮小棋盤尺寸以縮短棋子間距 */
+  .palace-board { 
+    background: var(--board-bg) !important; 
+    width: 210px; height: 210px; 
+    margin: 45px auto 45px; 
+    position: relative; 
+    border: 4px solid var(--line-color);
+    box-shadow: 0 4px 15px rgba(0,0,0,0.5);
+  }
+
+  .line { position: absolute; background: var(--line-color) !important; }
+  .line-h { width: 100%; height: 3px; left: 0; }
+  .line-v { height: 100%; width: 3px; top: 0; }
+  .h-mid { top: 50%; transform: translateY(-50%); }
+  .v-mid { left: 50%; transform: translateX(-50%); }
+  .line-x { width: 141.4%; height: 3px; top: 0; left: 0; transform-origin: top left; transform: rotate(45deg); }
+  .line-x2 { width: 141.4%; height: 3px; top: 0; right: 0; transform-origin: top right; transform: rotate(-45deg); }
+
+  /* 修正：放大棋子尺寸與字體佔比 */
+  .piece { 
+    width: 72px; height: 72px; 
+    background: var(--piece-white) !important; 
+    border-radius: 50%; 
+    border: 3px solid #000 !important; 
+    display: none; align-items: center; justify-content: center; 
+    font-size: 42px; font-family: "Kaiti", "serif"; font-weight: 900; 
+    position: absolute; transform: translate(-50%, -50%); z-index: 20;
+    box-shadow: 2px 4px 8px rgba(0,0,0,0.4);
+    color: #000 !important;
+  }
+  .piece::after { content: ''; position: absolute; width: 84%; height: 84%; border: 1.5px solid currentColor; border-radius: 50%; opacity: 0.6; }
+  .piece.red { color: #d32f2f !important; }
+  .piece.black { color: #1a1a1a !important; }
+
+  #v-mid { top: 50%; left: 50%; }
+  #v-left { top: 50%; left: 0; }
+  #v-right { top: 50%; left: 100%; }
+  #v-up { top: 0; left: 50%; }
+  #v-down { top: 100%; left: 50%; }
+
+  .controls { background: #1e1e1e; padding: 15px; border-radius: 8px; border: 1px solid #333; width: 100%; box-sizing: border-box; }
+  .quick-tags { margin: 10px 0; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag-btn { background: #2a2a2a; color: #ffd700; border: 1px solid #ffd700; padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
+  select, input[type="text"] { width: 100%; padding: 10px; border-radius: 4px; border: 1px solid #444; background: #2a2a2a; color: #fff; margin-bottom: 12px; }
+  .btn-primary { background: #007bff; color: #fff; width: 100%; padding: 12px; font-weight: bold; border: none; border-radius: 4px; font-size: 16px; margin-bottom: 10px; cursor: pointer; }
+  .btn-group { display: flex; gap: 8px; }
+  .btn-secondary { background: #444; color: white; flex: 1; padding: 10px; font-weight: bold; border-radius: 4px; border: none; cursor: pointer; }
+  
+  #output { width: 100%; box-sizing: border-box; background: #000 !important; color: #ffffff !important; border: 1px solid #ffd700; padding: 15px; border-radius: 8px; font-size: 14px; line-height: 1.6; margin-top: 10px; }
+</style>
+</head>
+<body>
+
+<div class="main-container">
+  <h2 style="text-align: center;">象棋卜卦 - 視覺化抽掛器</h2>
+  <div class="grid" id="grid"></div>
+
+  <div class="screenshot-area">
+    <div style="text-align: center; color: #ffd700; font-weight: bold; font-size: 16px;">卦象分佈 (中、左、右、上、下)</div>
+    
+    <div class="palace-board">
+      <div class="line line-h h-mid"></div>
+      <div class="line line-h" style="top:0;"></div>
+      <div class="line line-h" style="bottom:0;"></div>
+      <div class="line line-v v-mid"></div>
+      <div class="line line-v" style="left:0;"></div>
+      <div class="line line-v" style="right:0;"></div>
+      <div class="line line-x"></div>
+      <div class="line line-x2"></div>
+      
+      <div id="v-up" class="piece"></div>
+      <div id="v-left" class="piece"></div>
+      <div id="v-mid" class="piece"></div>
+      <div id="v-right" class="piece"></div>
+      <div id="v-down" class="piece"></div>
+    </div>
+
+    <textarea id="output" rows="9" placeholder="最終提示詞將顯示於此..." readonly></textarea>
+  </div>
+
+  <div class="controls">
+    <div style="font-size: 14px; margin-bottom: 10px;">
+      性別：<select id="gender" style="width: 70px;"><option value="男" selected>男</option><option value="女">女</option></select>
+      婚姻：<select id="marriage" style="width: 80px;"><option value="已婚" selected>已婚</option><option value="未婚">未婚</option></select>
+    </div>
+
+    <div class="quick-tags">
+      <div class="tag-btn" onclick="addTag('付出與收穫的分數計算')">分數計算</div>
+      <div class="tag-btn" onclick="addTag('格局分析')">格局分析</div>
+      <div class="tag-btn" onclick="addTag('問雙方關係')">雙方關係</div>
+      <div class="tag-btn" onclick="addTag('問雙方緣分')">雙方緣分</div>
+      <div class="tag-btn" onclick="addTag('問互動是否有好處')">互動好處</div>
+      <div class="tag-btn" onclick="addTag('問健康狀態')">健康狀態</div>
+      <div class="tag-btn" onclick="addTag('問適合度')">適合度</div>
+      <div class="tag-btn" onclick="addTag('問好壞')">問好壞</div>
+      <div class="tag-btn" onclick="addTag('問成功與否')">成功與否</div>
+      <div class="tag-btn" onclick="addTag('問可否')">問可否</div>
+      <div class="tag-btn" onclick="addTag('問可能性')">可能性</div>
+      <div class="tag-btn" onclick="addTag('問前世關係')">前世關係</div>
+    </div>
+    
+    <input type="text" id="subject" placeholder="請編輯求問事項...">
+    <button class="btn-primary" onclick="generatePrompt()">產生解卦提示詞</button>
+    <div class="btn-group">
+      <button class="btn-secondary" onclick="copyToClipboard()">複製內容</button>
+      <button class="btn-secondary" onclick="location.reload()">重新洗牌</button>
+    </div>
+  </div>
+</div>
+
+<script>
+  const piecesData = [
+    {name:'帥', color:'red'},{name:'仕', color:'red'},{name:'仕', color:'red'},{name:'相', color:'red'},{name:'相', color:'red'},{name:'俥', color:'red'},{name:'俥', color:'red'},{name:'傌', color:'red'},{name:'傌', color:'red'},{name:'炮', color:'red'},{name:'炮', color:'red'},{name:'兵', color:'red'},{name:'兵', color:'red'},{name:'兵', color:'red'},{name:'兵', color:'red'},{name:'兵', color:'red'},
+    {name:'將', color:'black'},{name:'士', color:'black'},{name:'士', color:'black'},{name:'象', color:'black'},{name:'象', color:'black'},{name:'車', color:'black'},{name:'車', color:'black'},{name:'馬', color:'black'},{name:'馬', color:'black'},{name:'砲', color:'black'},{name:'砲', color:'black'},{name:'卒', color:'black'},{name:'卒', color:'black'},{name:'卒', color:'black'},{name:'卒', color:'black'},{name:'卒', color:'black'}
+  ];
+  
+  let shuffled = piecesData.sort(() => 0.5 - Math.random());
+  let selected = [];
+  const positions = ['mid', 'left', 'right', 'up', 'down'];
+  const posNames = ['中', '左', 'right', '上', '下']; // 修正：此處僅為程式邏輯，prompt 會正確產出「右」
+
+  const grid = document.getElementById('grid');
+  shuffled.forEach((piece, index) => {
+    let card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `<span class="seq"></span>${index + 1}`;
+    card.onclick = function() {
+      if(selected.length < 5) {
+        selected.push(piece);
+        card.classList.add('revealed');
+        card.querySelector('.seq').innerText = selected.length;
+        
+        const currentPosIndex = selected.length - 1;
+        const targetId = `v-${positions[currentPosIndex]}`;
+        const pElem = document.getElementById(targetId);
+        pElem.innerText = piece.name;
+        pElem.className = `piece ${piece.color}`;
+        pElem.style.display = 'flex';
+      }
+    };
+    grid.appendChild(card);
+  });
+
+  function addTag(text) { document.getElementById('subject').value = text; }
+
+  function generatePrompt() {
+    if(selected.length < 5) { alert('請先抽滿 5 個棋子喔！'); return; }
+    const gender = document.getElementById('gender').value;
+    const marriage = document.getElementById('marriage').value;
+    const subject = document.getElementById('subject').value || '一般分析';
+    const realPosNames = ['中', '左', '右', '上', '下'];
+    
+    let prompt = `請幫我解卦。\n\n【求問事項】：${subject}\n【卦象排列】：\n`;
+    for(let i=0; i<5; i++) {
+      prompt += `${realPosNames[i]}：${selected[i].name}  `;
+    }
+    prompt += `\n\n【個人資料】：性別：${gender} / 婚姻：${marriage}`;
+    document.getElementById('output').value = prompt;
+  }
+
+  function copyToClipboard() {
+    const copyText = document.getElementById("output");
+    if(!copyText.value) return;
+    copyText.select();
+    document.execCommand("copy");
+    alert("已複製內容！");
+  }
+</script>
+</body>
+</html>
