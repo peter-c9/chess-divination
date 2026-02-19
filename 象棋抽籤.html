@@ -177,7 +177,7 @@
     const subject = document.getElementById('subject').value || '一般分析';
     const realPosNames = ['中', '左', '右', '上', '下'];
     
-    let prompt = `請幫我解卦。\n\n【求問事項】：${subject}\n【卦象排列】：\n`;
+    let prompt = `請依據[象棋解卦報告標準格式]幫我解卦。\n\n【求問事項】：${subject}\n【卦象排列】：\n`;
     for(let i=0; i<5; i++) {
       prompt += `${realPosNames[i]}：${selected[i].name}  `;
     }
@@ -194,4 +194,5 @@
   }
 </script>
 </body>
+
 </html>
