@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
-<title>象棋三合一占卜終端 - 雙曆穩定版</title>
+<title>象棋三合一占卜終端 - 純數字農曆版</title>
 <style>
   :root { 
     --board-bg: #f2c029; --line-color: #000000; --piece-white: #ffffff;
@@ -175,7 +175,7 @@
   
   let currentMode = 'draw', selected = [];
 
-  // 完美分離：徹底解決手機瀏覽器農曆混亂問題
+  // 徹底解決手機瀏覽器農曆混亂問題：改用純數字
   function getFormattedDate() {
     const now = new Date();
     // 國曆手動拼接
@@ -188,22 +188,22 @@
 
     let lunar = "";
     try {
-      // 第一部分：依照您的建議，單獨查詢農曆「年」
+      // 第一部分：單獨查詢農曆「年」
       const fmtYear = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { year: 'numeric' });
       let lYear = fmtYear.format(now);
       
-      // 第二部分：單獨查詢農曆「月、日」
-      const fmtMD = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { month: 'long', day: 'numeric' });
+      // 第二部分：單獨查詢農曆「月、日」，強制使用純數字 (numeric) 避免中文排版 Bug
+      const fmtMD = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { month: 'numeric', day: 'numeric' });
       let lMD = fmtMD.format(now);
 
-      // 強制防呆機制：如果手機的農曆年查出來還是阿拉伯數字(如 2026年)，手動計算天干地支！
+      // 強制防呆機制：如果手機的農曆年查出來還是阿拉伯數字，手動計算天干地支
       if (lYear.includes(y.toString())) {
         const stems = ["庚", "辛", "壬", "癸", "甲", "乙", "丙", "丁", "戊", "己"];
         const branches = ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"];
         lYear = stems[y % 10] + branches[y % 12] + "年";
       }
 
-      // 將乾淨的年、月、日組合
+      // 將乾淨的年、月、日組合 (例如: 丙午年 1月26日)
       lunar = ` (農曆 ${lYear} ${lMD})`;
     } catch (e) {
       console.log("農曆轉換失敗");
@@ -326,7 +326,7 @@
   function openModal(id) { document.getElementById(id).style.display = 'flex'; }
   function closeModal(e, id) { if(!e || e.target === e.currentTarget) document.getElementById(id).style.display = 'none'; }
 
-  const tags = ["分數計算", "格局分析", "問緣分", "健康狀態", "問好壞", "成功與否", "前世關係"];
+  const tags = ["分數計算", "格局分析", "雙方關係", "問雙方緣分", "互動得好處?", "健康狀態", "適合度", "問好壞", "成功與否", "問可否", "問可能性", "問前世關係"];
   tags.forEach(t => {
     let b = document.createElement('span'); b.className = 'tag-btn'; b.innerText = t; 
     b.onclick = () => document.getElementById('subject').value = t;
