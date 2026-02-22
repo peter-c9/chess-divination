@@ -2,50 +2,53 @@
 <html lang="zh-TW">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
-<title>象棋三合一占卜終端 - 觸控友善版</title>
+<title>象棋三合一占卜終端 - 雙曆完美優化版</title>
 <style>
   :root { 
     --board-bg: #f2c029; --line-color: #000000; --piece-white: #ffffff;
     --dodger-blue: #1E90FF; --hot-pink: #FF69B4; --gold: #FFD700;
   }
-  body { font-family: "Microsoft JhengHei", "Kaiti", serif; background: #121212 !important; color: #e0e0e0 !important; padding: 15px; display: flex; flex-direction: column; align-items: center; margin: 0; }
-  .main-container { width: 100%; max-width: 420px; }
+  /* 縮小 body 的 padding，把最大空間還給手機螢幕 */
+  body { font-family: "Microsoft JhengHei", "Kaiti", serif; background: #121212 !important; color: #e0e0e0 !important; padding: 8px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+  
+  /* 解除寬度限制，讓下方區塊能完整延展 */
+  .main-container { width: 100%; max-width: 500px; box-sizing: border-box; }
 
   /* 模式切換 */
-  .mode-switch { display: flex; background: #333; border-radius: 25px; padding: 5px; margin-bottom: 15px; width: 100%; }
+  .mode-switch { display: flex; background: #333; border-radius: 25px; padding: 5px; margin-bottom: 12px; width: 100%; }
   .mode-btn { flex: 1; text-align: center; padding: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
   .mode-btn.active { background: #555; color: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.2); }
 
-  /* 32子面板 */
-  .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 6px; margin-bottom: 15px; }
-  .card { width: 100%; aspect-ratio: 1/1; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: 900; position: relative; font-size: 28px; transition: 0.2s; }
+  /* 32子數字鍵面板：縮小間距與字體，確保 8 欄能完美塞進螢幕不破版 */
+  .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 15px; width: 100%; }
+  .card { width: 100%; aspect-ratio: 1/1; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: 900; position: relative; font-size: 20px; transition: 0.2s; box-sizing: border-box; }
   .card.draw-mode { background: var(--dodger-blue) !important; color: #ffffff !important; border-color: #0d73d9; }
   .card.layout-mode { background: #eee !important; }
   .card.red-text { color: #d32f2f !important; }
   .card.black-text { color: #212121 !important; }
-  .card .seq { position: absolute; top: -6px; right: -6px; background: #FF3D00; color: #fff; font-size: 11px; width: 18px; height: 18px; line-height: 18px; border-radius: 50%; display: none; z-index: 10; border: 1.5px solid white; box-shadow: 0 0 3px #000; }
+  .card .seq { position: absolute; top: -4px; right: -4px; background: #FF3D00; color: #fff; font-size: 10px; width: 16px; height: 16px; line-height: 16px; border-radius: 50%; display: none; z-index: 10; border: 1px solid white; box-shadow: 0 0 3px #000; }
   .card.revealed { background: #444 !important; color: #888 !important; pointer-events: none; opacity: 0.8; }
   .card.revealed .seq { display: block; }
 
-  /* 截圖區 */
-  .screenshot-area { background: #1e1e1e !important; padding: 15px; border-radius: 12px; border: 2px solid #444; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-  .palace-board { background: var(--board-bg) !important; width: 200px; height: 200px; margin: 40px auto; position: relative; border: 4px solid var(--line-color); }
+  /* 截圖區與輸出區 */
+  .screenshot-area { background: #1e1e1e !important; padding: 12px; border-radius: 12px; border: 2px solid #444; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
+  .palace-board { background: var(--board-bg) !important; width: 200px; height: 200px; margin: 30px auto; position: relative; border: 4px solid var(--line-color); }
   .line { position: absolute; background: var(--line-color) !important; }
   .line-h { width: 100%; height: 3px; left: 0; } .line-v { height: 100%; width: 3px; top: 0; }
   .h-mid { top: 50%; transform: translateY(-50%); } .v-mid { left: 50%; transform: translateX(-50%); }
   .line-x { width: 141.4%; height: 3px; top: 0; left: 0; transform-origin: top left; transform: rotate(45deg); }
   .line-x2 { width: 141.4%; height: 3px; top: 0; right: 0; transform-origin: top right; transform: rotate(-45deg); }
   
-  .piece { width: 68px; height: 68px; background: #fff !important; border-radius: 50%; border: 3px solid #000 !important; display: none; align-items: center; justify-content: center; font-size: 40px; font-weight: 900; position: absolute; transform: translate(-50%, -50%); z-index: 20; color: #000 !important; box-shadow: 2px 4px 8px rgba(0,0,0,0.4); }
+  .piece { width: 68px; height: 68px; background: #fff !important; border-radius: 50%; border: 3px solid #000 !important; display: none; align-items: center; justify-content: center; font-size: 38px; font-weight: 900; position: absolute; transform: translate(-50%, -50%); z-index: 20; color: #000 !important; box-shadow: 2px 4px 8px rgba(0,0,0,0.4); }
   .piece.red { color: #d32f2f !important; }
   #v-mid { top: 50%; left: 50%; } #v-left { top: 50%; left: 0; } #v-right { top: 50%; left: 100%; } #v-up { top: 0; left: 50%; } #v-down { top: 100%; left: 50%; }
 
   /* 數理圖案區 */
-  .math-display { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 15px 5px; margin-top: 10px; display: none; justify-content: space-between; }
+  .math-display { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 12px 5px; margin-top: 10px; display: none; justify-content: space-between; }
   .gua-block { width: 49%; display: flex; flex-direction: column; align-items: center; }
-  .gua-title { font-weight: bold; margin-bottom: 12px; font-size: 16px; color: var(--gold); display: flex; align-items: center; }
+  .gua-title { font-weight: bold; margin-bottom: 12px; font-size: 16px; color: var(--gold); display: flex; align-items: center; width: 100%; justify-content: center; }
   
   /* 放大的查表按鈕 */
   .btn-info { background: #444; color: #fff; border: 1px solid #777; border-radius: 6px; padding: 6px 14px; font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 10px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
@@ -56,24 +59,24 @@
   .yao-text { width: 105px; text-align: left; } 
   .moving-yao { color: #ff3366; font-weight: bold; }
 
-  /* 四色按鈕排 */
-  .btn-row { display: flex; gap: 6px; width: 100%; margin-bottom: 10px; }
-  .btn-prompt { flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; color: #000000; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-  .btn-prompt:hover { opacity: 0.9; }
-  .bg-xq { background: var(--dodger-blue); } .bg-zs { background: #ffffff; } .bg-mh { background: var(--hot-pink); } .bg-all { background: var(--gold); }
-
+  /* 控制區 */
   .controls { background: #1e1e1e; padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box; }
   .quick-tags { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
   .tag-btn { background: #2a2a2a; color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
   .tag-btn:hover { background: var(--gold); color: #000; }
   
+  .btn-row { display: flex; gap: 6px; width: 100%; margin-bottom: 10px; }
+  .btn-prompt { flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; color: #000000; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
+  .btn-prompt:hover { opacity: 0.9; }
+  .bg-xq { background: var(--dodger-blue); } .bg-zs { background: #ffffff; } .bg-mh { background: var(--hot-pink); } .bg-all { background: var(--gold); }
+
   .action-row { display: flex; gap: 8px; width: 100%; }
   .btn-action { background: #444; color: white; flex: 1; padding: 12px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
   #output { width: 100%; background: #000; color: #fff; border: 1px solid var(--gold); padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; box-sizing: border-box; line-height: 1.6; }
 
   /* 彈出式表單 Modal */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
-  .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 8px; padding: 15px 18px; width: 95%; max-width: 400px; color: #fff; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+  .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 8px; padding: 15px 18px; width: 95%; max-width: 450px; color: #fff; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
   .modal-title { text-align: center; color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 12px; font-weight: bold; }
   .modal-close { display: block; width: 100%; background: #d32f2f; color: white; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; font-size: 16px; }
   
@@ -90,7 +93,7 @@
   <div class="grid" id="grid"></div>
 
   <div class="screenshot-area">
-    <div id="cur-date" style="text-align: center; font-size: 14px; color: var(--gold); margin-bottom: 5px; font-weight: bold;"></div>
+    <div id="cur-date" style="text-align: center; font-size: 15px; color: var(--gold); margin-bottom: 8px; font-weight: bold; letter-spacing: 1px;"></div>
     
     <div class="palace-board">
       <div class="line line-h h-mid"></div><div class="line line-h" style="top:0;"></div><div class="line line-h" style="bottom:0;"></div>
@@ -162,7 +165,6 @@
     {n:'卒', c:'black', p:10, t:'young'},{n:'卒', c:'black', p:10, t:'young'},{n:'卒', c:'black', p:10, t:'young'},{n:'卒', c:'black', p:10, t:'young'}
   ];
 
-  // 專屬虛擬子對應陣列
   const virtualPieces = [
     null, {n:'帥', c:'red'}, {n:'將', c:'black'}, {n:'仕', c:'red'}, {n:'士', c:'black'}, {n:'仕', c:'red'}, {n:'士', c:'black'},
     {n:'相', c:'red'}, {n:'象', c:'black'}, {n:'相', c:'red'}, {n:'象', c:'black'}, {n:'傌', c:'red'}, {n:'馬', c:'black'},
@@ -172,7 +174,6 @@
     {n:'兵', c:'red'}, {n:'卒', c:'black'}
   ];
 
-  // 梅花八卦專屬資料陣列
   const mhData = [
     { r: 1, n: '乾', s: '☰', t: '天', e: '金' },
     { r: 2, n: '兌', s: '☱', t: '澤', e: '金' },
@@ -258,6 +259,32 @@
 
   function renderYaoBar(isYang) { return isYang ? '████████' : '██　　██'; }
 
+  // 雙曆穩定的時間格式化函數 (國曆 + 農曆)
+  function getFormattedDate() {
+    const now = new Date();
+    
+    // 1. 安全抓取標準國曆
+    const yyyy = now.getFullYear();
+    const mm = String(now.getMonth() + 1).padStart(2, '0');
+    const dd = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const min = String(now.getMinutes()).padStart(2, '0');
+    const gregorian = `${yyyy}年${mm}月${dd}日 ${hh}:${min}`;
+
+    // 2. 防呆抓取農曆，若有問題則安靜地隱藏不報錯
+    let lunar = "";
+    try {
+      const lunarFormatter = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', {
+        year: 'numeric', month: 'long', day: 'numeric'
+      });
+      lunar = ` (農曆 ${lunarFormatter.format(now)})`;
+    } catch (e) {
+      console.log("此設備暫不支援農曆轉換");
+    }
+
+    return gregorian + lunar;
+  }
+
   function showMath() {
     const sp = selected.reduce((s, p) => s + p.p, 0);
     const rp = selected.filter(p => p.c === 'red').reduce((s, p) => s + p.p, 0);
@@ -301,9 +328,8 @@
     }
     document.getElementById('mh-graph').innerHTML = mhHtml;
 
-    const now = new Date();
-    const formatter = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', {year:'numeric', month:'long', day:'numeric', hour:'numeric'});
-    document.getElementById('cur-date').innerText = formatter.format(now);
+    // 呼叫全新的雙曆函數
+    document.getElementById('cur-date').innerText = getFormattedDate();
   }
 
   function generatePrompt(type) {
