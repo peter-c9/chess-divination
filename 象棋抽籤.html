@@ -4,16 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="color-scheme" content="only light">
-<title>象棋三合一占卜終端 - 雙曆完美優化版</title>
+<title>象棋三合一占卜終端 - 完美相容版</title>
 <style>
   :root { 
     --board-bg: #f2c029; --line-color: #000000; --piece-white: #ffffff;
     --dodger-blue: #1E90FF; --hot-pink: #FF69B4; --gold: #FFD700;
   }
-  /* 縮小 body 的 padding，把最大空間還給手機螢幕 */
-  body { font-family: "Microsoft JhengHei", "Kaiti", serif; background: #121212 !important; color: #e0e0e0 !important; padding: 8px; display: flex; flex-direction: column; align-items: center; margin: 0; }
+  body { font-family: "Microsoft JhengHei", "Kaiti", serif; background: #121212 !important; color: #e0e0e0 !important; padding: 10px; display: flex; flex-direction: column; align-items: center; margin: 0; box-sizing: border-box; }
   
-  /* 解除寬度限制，讓下方區塊能完整延展 */
   .main-container { width: 100%; max-width: 500px; box-sizing: border-box; }
 
   /* 模式切換 */
@@ -21,9 +19,9 @@
   .mode-btn { flex: 1; text-align: center; padding: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
   .mode-btn.active { background: #555; color: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.2); }
 
-  /* 32子數字鍵面板：縮小間距與字體，確保 8 欄能完美塞進螢幕不破版 */
+  /* 32子數字鍵面板：優化縮放，確保不破版 */
   .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 15px; width: 100%; }
-  .card { width: 100%; aspect-ratio: 1/1; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: 900; position: relative; font-size: 20px; transition: 0.2s; box-sizing: border-box; }
+  .card { width: 100%; aspect-ratio: 1/1; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: 900; position: relative; font-size: 18px; transition: 0.2s; box-sizing: border-box; }
   .card.draw-mode { background: var(--dodger-blue) !important; color: #ffffff !important; border-color: #0d73d9; }
   .card.layout-mode { background: #eee !important; }
   .card.red-text { color: #d32f2f !important; }
@@ -34,52 +32,48 @@
 
   /* 截圖區與輸出區 */
   .screenshot-area { background: #1e1e1e !important; padding: 12px; border-radius: 12px; border: 2px solid #444; margin-bottom: 15px; width: 100%; box-sizing: border-box; }
-  .palace-board { background: var(--board-bg) !important; width: 200px; height: 200px; margin: 30px auto; position: relative; border: 4px solid var(--line-color); }
+  .palace-board { background: var(--board-bg) !important; width: 180px; height: 180px; margin: 25px auto; position: relative; border: 4px solid var(--line-color); }
   .line { position: absolute; background: var(--line-color) !important; }
   .line-h { width: 100%; height: 3px; left: 0; } .line-v { height: 100%; width: 3px; top: 0; }
   .h-mid { top: 50%; transform: translateY(-50%); } .v-mid { left: 50%; transform: translateX(-50%); }
   .line-x { width: 141.4%; height: 3px; top: 0; left: 0; transform-origin: top left; transform: rotate(45deg); }
   .line-x2 { width: 141.4%; height: 3px; top: 0; right: 0; transform-origin: top right; transform: rotate(-45deg); }
   
-  .piece { width: 68px; height: 68px; background: #fff !important; border-radius: 50%; border: 3px solid #000 !important; display: none; align-items: center; justify-content: center; font-size: 38px; font-weight: 900; position: absolute; transform: translate(-50%, -50%); z-index: 20; color: #000 !important; box-shadow: 2px 4px 8px rgba(0,0,0,0.4); }
+  .piece { width: 62px; height: 62px; background: #fff !important; border-radius: 50%; border: 3px solid #000 !important; display: none; align-items: center; justify-content: center; font-size: 36px; font-weight: 900; position: absolute; transform: translate(-50%, -50%); z-index: 20; color: #000 !important; box-shadow: 2px 4px 8px rgba(0,0,0,0.4); }
   .piece.red { color: #d32f2f !important; }
   #v-mid { top: 50%; left: 50%; } #v-left { top: 50%; left: 0; } #v-right { top: 50%; left: 100%; } #v-up { top: 0; left: 50%; } #v-down { top: 100%; left: 50%; }
 
-  /* 數理圖案區 */
-  .math-display { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 12px 5px; margin-top: 10px; display: none; justify-content: space-between; }
-  .gua-block { width: 49%; display: flex; flex-direction: column; align-items: center; }
-  .gua-title { font-weight: bold; margin-bottom: 12px; font-size: 16px; color: var(--gold); display: flex; align-items: center; width: 100%; justify-content: center; }
+  /* 數理圖案區：改為垂直堆疊以防止手機破版 */
+  .math-display { background: #2a2a2a; border: 1px solid #444; border-radius: 8px; padding: 15px 10px; margin-top: 10px; display: none; flex-direction: column; gap: 20px; }
+  .gua-block { width: 100%; display: flex; flex-direction: column; align-items: center; }
+  .gua-title { font-weight: bold; margin-bottom: 10px; font-size: 16px; color: var(--gold); display: flex; align-items: center; width: 100%; justify-content: center; }
   
-  /* 放大的查表按鈕 */
-  .btn-info { background: #444; color: #fff; border: 1px solid #777; border-radius: 6px; padding: 6px 14px; font-size: 14px; font-weight: bold; cursor: pointer; margin-left: 10px; transition: 0.2s; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-  .btn-info:hover { background: #666; color: var(--gold); border-color: var(--gold); }
+  /* 查表按鈕 */
+  .btn-info { background: #444; color: #fff; border: 1px solid #777; border-radius: 6px; padding: 5px 12px; font-size: 13px; font-weight: bold; cursor: pointer; margin-left: 10px; transition: 0.2s; }
   
-  .yao-line { display: flex; align-items: center; width: 100%; justify-content: center; font-family: monospace; font-size: 13px; margin: 3px 0; color: #ccc; }
-  .yao-bar { font-size: 13px; margin-right: 6px; letter-spacing: -1px; }
-  .yao-text { width: 105px; text-align: left; } 
+  .yao-line { display: flex; align-items: center; width: 100%; justify-content: center; font-family: monospace; font-size: 14px; margin: 4px 0; color: #ccc; }
+  .yao-bar { font-size: 15px; margin-right: 12px; letter-spacing: -1px; white-space: nowrap; }
+  .yao-text { text-align: left; white-space: nowrap; min-width: 100px; } 
   .moving-yao { color: #ff3366; font-weight: bold; }
 
   /* 控制區 */
   .controls { background: #1e1e1e; padding: 15px; border-radius: 12px; width: 100%; box-sizing: border-box; }
   .quick-tags { margin-bottom: 12px; display: flex; flex-wrap: wrap; gap: 6px; }
   .tag-btn { background: #2a2a2a; color: var(--gold); border: 1px solid var(--gold); padding: 5px 10px; border-radius: 15px; font-size: 12px; cursor: pointer; }
-  .tag-btn:hover { background: var(--gold); color: #000; }
   
   .btn-row { display: flex; gap: 6px; width: 100%; margin-bottom: 10px; }
-  .btn-prompt { flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; color: #000000; box-shadow: 0 2px 4px rgba(0,0,0,0.3); }
-  .btn-prompt:hover { opacity: 0.9; }
+  .btn-prompt { flex: 1; padding: 12px 0; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; font-size: 15px; text-align: center; color: #000000; }
   .bg-xq { background: var(--dodger-blue); } .bg-zs { background: #ffffff; } .bg-mh { background: var(--hot-pink); } .bg-all { background: var(--gold); }
 
   .action-row { display: flex; gap: 8px; width: 100%; }
   .btn-action { background: #444; color: white; flex: 1; padding: 12px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
   #output { width: 100%; background: #000; color: #fff; border: 1px solid var(--gold); padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; box-sizing: border-box; line-height: 1.6; }
 
-  /* 彈出式表單 Modal */
+  /* 彈出表單優化 */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
-  .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 8px; padding: 15px 18px; width: 95%; max-width: 450px; color: #fff; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); max-height: 90vh; overflow-y: auto; }
+  .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 8px; padding: 15px; width: 92%; max-width: 450px; color: #fff; position: relative; max-height: 85vh; overflow-y: auto; }
   .modal-title { text-align: center; color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 12px; font-weight: bold; }
-  .modal-close { display: block; width: 100%; background: #d32f2f; color: white; text-align: center; padding: 10px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; font-size: 16px; }
-  
+  .modal-close { display: block; width: 100%; background: #d32f2f; color: white; text-align: center; padding: 12px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; margin-top: 15px; font-size: 16px; }
 </style>
 </head>
 <body>
@@ -93,7 +87,7 @@
   <div class="grid" id="grid"></div>
 
   <div class="screenshot-area">
-    <div id="cur-date" style="text-align: center; font-size: 15px; color: var(--gold); margin-bottom: 8px; font-weight: bold; letter-spacing: 1px;"></div>
+    <div id="cur-date" style="text-align: center; font-size: 14px; color: var(--gold); margin-bottom: 10px; font-weight: bold; letter-spacing: 0.5px;"></div>
     
     <div class="palace-board">
       <div class="line line-h h-mid"></div><div class="line line-h" style="top:0;"></div><div class="line line-h" style="bottom:0;"></div>
@@ -107,7 +101,7 @@
       <div class="gua-block" id="mh-graph"></div>
     </div>
     
-    <textarea id="output" rows="12" placeholder="生成的提示詞將顯示於此，包含完整的運算過程..." readonly></textarea>
+    <textarea id="output" rows="12" placeholder="生成的提示詞將顯示於此..." readonly></textarea>
   </div>
 
   <div class="controls">
@@ -115,10 +109,8 @@
       性別：<select id="gender" style="flex:1; padding:8px;"><option value="男">男</option><option value="女">女</option></select>
       婚姻：<select id="marriage" style="flex:1; padding:8px;"><option value="已婚">已婚</option><option value="未婚">未婚</option></select>
     </div>
-
     <div class="quick-tags" id="tag-container"></div>
-
-    <input type="text" id="subject" placeholder="請點選上方標籤或自行輸入求問事項..." style="width:100%; padding:10px; box-sizing:border-box; margin-bottom:12px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:4px;">
+    <input type="text" id="subject" placeholder="請點選標籤或輸入求問事項..." style="width:100%; padding:10px; box-sizing:border-box; margin-bottom:12px; background:#2a2a2a; color:#fff; border:1px solid #444; border-radius:4px;">
     
     <div class="btn-row">
       <button class="btn-prompt bg-xq" onclick="generatePrompt('xq')">象棋</button>
@@ -141,7 +133,6 @@
     <button class="modal-close" onclick="closeModal(null, 'modal-zs')">關閉視窗</button>
   </div>
 </div>
-
 <div class="modal-overlay" id="modal-mh" onclick="closeModal(event, 'modal-mh')">
   <div class="modal-content" onclick="event.stopPropagation()">
     <h3 class="modal-title">梅花上下卦餘數換算表</h3>
@@ -151,7 +142,7 @@
 </div>
 
 <script>
-  // 主棋盤陣列
+  // 核心數據與換算邏輯維持不變，僅調整顯示相關程式碼
   const pieces = [
     {n:'帥', c:'red', p:80, t:'old'},{n:'仕', c:'red', p:60, t:'old'},{n:'仕', c:'red', p:60, t:'old'},
     {n:'相', c:'red', p:40, t:'old'},{n:'相', c:'red', p:40, t:'old'},{n:'俥', c:'red', p:30, t:'old'},
@@ -175,14 +166,10 @@
   ];
 
   const mhData = [
-    { r: 1, n: '乾', s: '☰', t: '天', e: '金' },
-    { r: 2, n: '兌', s: '☱', t: '澤', e: '金' },
-    { r: 3, n: '離', s: '☲', t: '火', e: '火' },
-    { r: 4, n: '震', s: '☳', t: '雷', e: '木' },
-    { r: 5, n: '巽', s: '☴', t: '風', e: '木' },
-    { r: 6, n: '坎', s: '☵', t: '水', e: '水' },
-    { r: 7, n: '艮', s: '☶', t: '山', e: '土' },
-    { r: '8/0', n: '坤', s: '☷', t: '地', e: '土' }
+    { r: 1, n: '乾', s: '☰', t: '天', e: '金' }, { r: 2, n: '兌', s: '☱', t: '澤', e: '金' },
+    { r: 3, n: '離', s: '☲', t: '火', e: '火' }, { r: 4, n: '震', s: '☳', t: '雷', e: '木' },
+    { r: 5, n: '巽', s: '☴', t: '風', e: '木' }, { r: 6, n: '坎', s: '☵', t: '水', e: '水' },
+    { r: 7, n: '艮', s: '☶', t: '山', e: '土' }, { r: '8/0', n: '坤', s: '☷', t: '地', e: '土' }
   ];
 
   const guaNames = ["", "乾", "兌", "離", "震", "巽", "坎", "艮", "坤"];
@@ -190,59 +177,53 @@
   
   let currentMode = 'draw', selected = [];
 
+  function getFormattedDate() {
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    const hh = String(now.getHours()).padStart(2, '0');
+    const mm = String(now.getMinutes()).padStart(2, '0');
+    const gregorian = `${y}年${m}月${d}日 ${hh}:${mm}`;
+    let lunar = "";
+    try {
+      const f = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', {year:'numeric', month:'long', day:'numeric'});
+      lunar = ` (農曆 ${f.format(now)})`;
+    } catch (e) {}
+    return gregorian + lunar;
+  }
+
   function populateZSTable() {
     let html = '';
     for(let i=1; i<=32; i++) {
       let p = virtualPieces[i];
       let color = p.c === 'red' ? '#ff4d4d' : '#cccccc';
-      html += `
-        <div style="background:#2a2a2a; border:1px solid #444; border-radius:6px; padding:6px 4px; display:flex; flex-direction:row; align-items:center; justify-content:center; gap:5px; box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);">
-          <div style="font-size:18px; font-weight:bold; color:var(--gold); line-height:1; min-width:20px; text-align:right;">${i}</div>
-          <div style="font-size:24px; font-weight:900; color:${color}; font-family:'Kaiti', serif; line-height:1;">${p.n}</div>
-        </div>`;
+      html += `<div style="background:#2a2a2a; border:1px solid #444; border-radius:6px; padding:6px 4px; display:flex; align-items:center; justify-content:center; gap:5px;"><div style="font-size:16px; font-weight:bold; color:var(--gold);">${i}</div><div style="font-size:22px; font-weight:900; color:${color}; font-family:'Kaiti';">${p.n}</div></div>`;
     }
     const container = document.getElementById('zs-grid-container');
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = 'repeat(4, 1fr)';
-    container.style.gap = '6px'; 
+    container.style.display = 'grid'; container.style.gridTemplateColumns = 'repeat(4, 1fr)'; container.style.gap = '6px';
     container.innerHTML = html;
   }
 
   function populateMHTable() {
     let html = '';
     mhData.forEach(d => {
-      html += `
-        <div style="background:#2a2a2a; border:1px solid #444; border-radius:8px; padding:11px 15px; display:flex; flex-direction:row; align-items:center; justify-content:space-between; box-shadow:inset 0 1px 3px rgba(0,0,0,0.3);">
-          <div style="font-size:24px; font-weight:bold; color:var(--gold); width:35px; text-align:left; line-height:1;">${d.r}</div>
-          <div style="font-size:36px; font-weight:900; color:#ffffff; font-family:'Kaiti', serif; flex:1; text-align:center; line-height:1;">${d.n}</div>
-          <div style="font-size:42px; color:#ffeb3b; line-height:1; width:55px; text-align:center;">${d.s}</div>
-          <div style="font-size:22px; color:#aaaaaa; width:95px; text-align:right; font-weight:bold; line-height:1;">${d.t}(${d.e})</div>
-        </div>`;
+      html += `<div style="background:#2a2a2a; border:1px solid #444; border-radius:8px; padding:11px 15px; display:flex; align-items:center; justify-content:space-between;"><div style="font-size:22px; font-weight:bold; color:var(--gold); width:35px;">${d.r}</div><div style="font-size:32px; font-weight:900; color:#fff; font-family:'Kaiti'; flex:1; text-align:center;">${d.n}</div><div style="font-size:40px; color:#ffeb3b; width:55px; text-align:center;">${d.s}</div><div style="font-size:20px; color:#aaa; width:95px; text-align:right;">${d.t}(${d.e})</div></div>`;
     });
     const container = document.getElementById('mh-grid-container');
-    container.style.display = 'grid';
-    container.style.gridTemplateColumns = '1fr';
-    container.style.gap = '8px';
+    container.style.display = 'grid'; container.style.gridTemplateColumns = '1fr'; container.style.gap = '8px';
     container.innerHTML = html;
   }
 
-  function switchMode(m) { 
-    currentMode = m; 
-    document.getElementById('mode-draw').classList.toggle('active', m === 'draw');
-    document.getElementById('mode-layout').classList.toggle('active', m === 'layout');
-    resetAll(); 
-  }
+  function switchMode(m) { currentMode = m; resetAll(); }
 
   function initGrid() {
     const grid = document.getElementById('grid'); grid.innerHTML = '';
     const list = (currentMode === 'draw') ? [...pieces].sort(() => 0.5 - Math.random()) :
                  pieces.filter(p=>p.c==='red').sort((a,b)=>b.p-a.p).concat(pieces.filter(p=>p.c==='black').sort((a,b)=>b.p-a.p));
-    
     list.forEach((p, i) => {
       let card = document.createElement('div');
-      let textClass = '';
-      if(currentMode === 'layout') { textClass = (i < 16) ? 'red-text' : 'black-text'; }
-      card.className = `card ${currentMode}-mode ${textClass}`;
+      card.className = `card ${currentMode}-mode ${currentMode==='layout'?(i<16?'red-text':'black-text'):''}`;
       card.innerHTML = `<span class="seq"></span>${currentMode==='draw' ? i+1 : p.n}`;
       card.onclick = () => {
         if(selected.length < 5) {
@@ -259,32 +240,6 @@
 
   function renderYaoBar(isYang) { return isYang ? '████████' : '██　　██'; }
 
-  // 雙曆穩定的時間格式化函數 (國曆 + 農曆)
-  function getFormattedDate() {
-    const now = new Date();
-    
-    // 1. 安全抓取標準國曆
-    const yyyy = now.getFullYear();
-    const mm = String(now.getMonth() + 1).padStart(2, '0');
-    const dd = String(now.getDate()).padStart(2, '0');
-    const hh = String(now.getHours()).padStart(2, '0');
-    const min = String(now.getMinutes()).padStart(2, '0');
-    const gregorian = `${yyyy}年${mm}月${dd}日 ${hh}:${min}`;
-
-    // 2. 防呆抓取農曆，若有問題則安靜地隱藏不報錯
-    let lunar = "";
-    try {
-      const lunarFormatter = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', {
-        year: 'numeric', month: 'long', day: 'numeric'
-      });
-      lunar = ` (農曆 ${lunarFormatter.format(now)})`;
-    } catch (e) {
-      console.log("此設備暫不支援農曆轉換");
-    }
-
-    return gregorian + lunar;
-  }
-
   function showMath() {
     const sp = selected.reduce((s, p) => s + p.p, 0);
     const rp = selected.filter(p => p.c === 'red').reduce((s, p) => s + p.p, 0);
@@ -292,106 +247,58 @@
     const up = (sp+rp)%8||8, dn = (sp+bp)%8||8, mov = sp%6||6;
 
     document.getElementById('math-box').style.display = 'flex';
-    
+    document.getElementById('cur-date').innerText = getFormattedDate();
+
     let vIdx = sp % 32; if (vIdx === 0) vIdx = 32;
     const pRef = pieces.find(x => x.c === virtualPieces[vIdx].c && x.n === virtualPieces[vIdx].n);
-    const vP = { n: virtualPieces[vIdx].n, c: virtualPieces[vIdx].c, t: pRef.t, p: pRef.p };
+    const vP = { n: virtualPieces[vIdx].n, c: virtualPieces[vIdx].c, t: pRef.t };
 
-    let zsHtml = `<div class="gua-title">六爻排列 <button class="btn-info" onclick="openModal('modal-zs')">表格</button></div>`;
+    // 六爻堆疊版
+    let zsHtml = `<div class="gua-title">【六爻排盤】 <button class="btn-info" onclick="openModal('modal-zs')">表格</button></div>`;
     let yaoList = [...selected, vP];
     for(let i=5; i>=0; i--) {
       let p = yaoList[i];
-      let isM = p.t === 'old';
       let isYang = p.c === 'red';
-      let yaoType = isYang ? (isM ? '老陽' : '少陽') : (isM ? '老陰' : '少陰');
-      let cssClass = isM ? 'moving-yao' : '';
-      zsHtml += `
-        <div class="yao-line ${cssClass}">
-          <span class="yao-bar">${renderYaoBar(isYang)}</span>
-          <span class="yao-text">${i+1}爻: ${p.n}(${yaoType})</span>
-        </div>`;
+      let type = isYang ? (p.t==='old'?'老陽':'少陽') : (p.t==='old'?'老陰':'少陰');
+      zsHtml += `<div class="yao-line ${p.t==='old'?'moving-yao':''}"><span class="yao-bar">${renderYaoBar(isYang)}</span><span class="yao-text">${i+1}爻: ${p.n}(${type})</span></div>`;
     }
     document.getElementById('zs-graph').innerHTML = zsHtml;
 
-    let mhHtml = `<div class="gua-title">梅花 (${guaNames[up]}${guaNames[dn]}) <button class="btn-info" onclick="openModal('modal-mh')">表單</button></div>`;
+    // 梅花堆疊版
+    let mhHtml = `<div class="gua-title">【梅花排盤】(${guaNames[up]}${guaNames[dn]}) <button class="btn-info" onclick="openModal('modal-mh')">表單</button></div>`;
     const fullGua = [...guaBars[dn], ...guaBars[up]]; 
     for(let i=5; i>=0; i--) {
       let isYang = fullGua[i] === 1;
-      let isMoving = (i+1) === mov;
-      let cssClass = isMoving ? 'moving-yao' : '';
-      let moveMark = isMoving ? '(動)' : '　　';
-      mhHtml += `
-        <div class="yao-line ${cssClass}">
-          <span class="yao-bar">${renderYaoBar(isYang)}</span>
-          <span class="yao-text">第${i+1}爻 ${moveMark}</span>
-        </div>`;
+      let mark = (i+1) === mov ? '(動爻)' : '　　　';
+      mhHtml += `<div class="yao-line ${(i+1)===mov?'moving-yao':''}"><span class="yao-bar">${renderYaoBar(isYang)}</span><span class="yao-text">第${i+1}爻 ${mark}</span></div>`;
     }
     document.getElementById('mh-graph').innerHTML = mhHtml;
-
-    // 呼叫全新的雙曆函數
-    document.getElementById('cur-date').innerText = getFormattedDate();
   }
 
   function generatePrompt(type) {
-    if(selected.length < 5) return alert("請先抽滿五個棋子！");
-    
+    if(selected.length < 5) return alert("請先選滿五個棋子！");
     const dateStr = document.getElementById('cur-date').innerText;
     const sub = document.getElementById('subject').value || "一般解卦";
     const gen = document.getElementById('gender').value;
     const mar = document.getElementById('marriage').value;
-    
     const sp = selected.reduce((s, p) => s + p.p, 0);
     const rp = selected.filter(p => p.c === 'red').reduce((s, p) => s + p.p, 0);
     const bp = selected.filter(p => p.c === 'black').reduce((s, p) => s + p.p, 0);
     
-    let resultText = "";
+    let vIdx = sp % 32; if (vIdx === 0) vIdx = 32;
+    const vP = virtualPieces[vIdx];
 
-    const getXQText = () => {
-      return `【象棋卜卦】 ${dateStr}\n求問：${sub} (${gen}/${mar})\n` +
-             `卦象方位：中(${selected[0].n})、左(${selected[1].n})、右(${selected[2].n})、上(${selected[3].n})、下(${selected[4].n})\n`;
-    };
+    const xq = `【象棋卜卦】\n求問：${sub}\n方位：中(${selected[0].n})、左(${selected[1].n})、右(${selected[2].n})、上(${selected[3].n})、下(${selected[4].n})\n`;
+    const mh = `【梅花易數】\n上卦：${guaNames[(sp+rp)%8||8]}，下卦：${guaNames[(sp+bp)%8||8]}，動爻：第${sp%6||6}爻\n`;
+    const zs = `【六爻增刪】\n第六爻：${(vP.c==='red'?'紅':'黑')+vP.n}\n`;
 
-    const getMHText = () => {
-      const upRem = (sp + rp) % 8; const upFinal = upRem || 8;
-      const dnRem = (sp + bp) % 8; const dnFinal = dnRem || 8;
-      const movRem = sp % 6; const movFinal = movRem || 6;
-      const upRemStr = upRem === 0 ? "0 (視為8)" : upRem;
-      const dnRemStr = dnRem === 0 ? "0 (視為8)" : dnRem;
-      const movRemStr = movRem === 0 ? "0 (視為6)" : movRem;
+    let final = `時間：${dateStr}\n問卜者：${gen}/${mar}\n\n`;
+    if(type==='xq') final += xq;
+    else if(type==='mh') final += mh;
+    else if(type==='zs') final += zs;
+    else final += xq + mh + zs;
 
-      return `【梅花易數】 ${dateStr}\n求問：${sub} (${gen}/${mar})\n` +
-             `數理參數：總分SP=${sp}, 紅分RP=${rp}, 黑分BP=${bp}\n` +
-             `上卦計算：(SP+RP) ÷ 8 ➔ (${sp}+${rp}) ÷ 8 ... 餘 ${upRemStr} ➔ ${guaNames[upFinal]}卦\n` +
-             `下卦計算：(SP+BP) ÷ 8 ➔ (${sp}+${bp}) ÷ 8 ... 餘 ${dnRemStr} ➔ ${guaNames[dnFinal]}卦\n` +
-             `動爻計算：SP ÷ 6 ➔ ${sp} ÷ 6 ... 餘 ${movRemStr} ➔ 第${movFinal}爻動\n` +
-             `本卦排盤：上卦為${guaNames[upFinal]}，下卦為${guaNames[dnFinal]} (第${movFinal}爻動)\n`;
-    };
-
-    const getZSText = () => {
-      let vIdx = sp % 32; if (vIdx === 0) vIdx = 32;
-      const pRef = pieces.find(x => x.c === virtualPieces[vIdx].c && x.n === virtualPieces[vIdx].n);
-      const vP = { n: virtualPieces[vIdx].n, c: virtualPieces[vIdx].c, t: pRef.t, p: pRef.p };
-
-      let txt = `【增刪卜易】 ${dateStr}\n求問：${sub} (${gen}/${mar})\n`;
-      txt += `第六爻(虛擬子)計算：總分SP=${sp} ÷ 32 ... 餘 ${sp%32===0?"0 (視為32)":vIdx} ➔ 對應棋子「${(vP.c==='red'?'紅':'黑')+vP.n}」\n六爻排盤：\n`;
-      
-      let yaoList = [...selected, vP];
-      for(let i=5; i>=0; i--) {
-        let p = yaoList[i];
-        let isYang = p.c === 'red';
-        let isM = p.t === 'old';
-        let yaoType = isYang ? (isM ? '老陽 O' : '少陽 —') : (isM ? '老陰 X' : '少陰 - -');
-        txt += `第${i+1}爻：${p.n} ➔ ${yaoType}\n`;
-      }
-      return txt;
-    };
-
-    if (type === 'xq') resultText = getXQText();
-    if (type === 'mh') resultText = getMHText();
-    if (type === 'zs') resultText = getZSText();
-    if (type === 'all') resultText = getXQText() + "\n" + getMHText() + "\n" + getZSText();
-
-    document.getElementById('output').value = resultText;
+    document.getElementById('output').value = final;
   }
 
   function resetAll() {
@@ -404,27 +311,20 @@
   function copyToClipboard() { 
     const o = document.getElementById('output');
     if(!o.value) return; o.select(); document.execCommand('copy'); 
-    alert('提示詞已成功複製到剪貼簿！貼到 NotebookLM 去做筆記吧。'); 
+    alert('提示詞已複製！'); 
   }
 
-  function openModal(modalId) { document.getElementById(modalId).style.display = 'flex'; }
-  function closeModal(event, modalId) {
-    if (event && event.target !== event.currentTarget) return; 
-    document.getElementById(modalId).style.display = 'none';
-  }
+  function openModal(id) { document.getElementById(id).style.display = 'flex'; }
+  function closeModal(e, id) { if(!e || e.target === e.currentTarget) document.getElementById(id).style.display = 'none'; }
 
-  const tags = ["分數計算", "格局分析", "雙方關係", "問雙方緣分", "互動得好處?", "健康狀態", "適合度", "問好壞", "成功與否", "問可否", "問可能性", "問前世關係"];
+  const tags = ["分數計算", "格局分析", "問緣分", "健康狀態", "問好壞", "成功與否", "前世關係"];
   tags.forEach(t => {
-    let b = document.createElement('span'); 
-    b.className = 'tag-btn'; 
-    b.innerText = t; 
+    let b = document.createElement('span'); b.className = 'tag-btn'; b.innerText = t; 
     b.onclick = () => document.getElementById('subject').value = t;
     document.getElementById('tag-container').appendChild(b);
   });
   
-  populateZSTable(); 
-  populateMHTable(); 
-  initGrid();
+  populateZSTable(); populateMHTable(); initGrid();
 </script>
 </body>
 </html>
