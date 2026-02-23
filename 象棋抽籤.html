@@ -321,7 +321,7 @@
           lDay = `${dVal}日`;
         }
       }
-      lunar = ` (農曆 ${lYear} ${lMonth}${lDay})`;
+      lunar = ` \n(農曆 ${lYear} ${lMonth}${lDay})`;
 
       // 月干支計算 (五虎遁口訣：甲己之年丙作首...)
       const mStartStemIdx = ((ysIdx % 5) * 2 + 2) % 10;
@@ -490,3 +490,4 @@
 </script>
 </body>
 </html>
+
