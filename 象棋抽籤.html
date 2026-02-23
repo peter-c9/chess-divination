@@ -260,9 +260,8 @@
   }
 
   function renderYaoBar(isYang) { return isYang ? '████████' : '███　　███'; }
-
-  // -----------------------------------------------------------
-  // 雙曆穩定的時間格式化函數 (修復年份不顯示、以及手機轉碼錯誤問題)
+// -----------------------------------------------------------
+  // 雙曆穩定的時間格式化函數 (加入純 JS 年月日干支運算)
   // -----------------------------------------------------------
   function getFormattedDate() {
     const now = new Date();
@@ -275,31 +274,42 @@
     const min = String(now.getMinutes()).padStart(2, '0');
     const gregorian = `${yyyy}年${mm}月${dd}日 ${hh}:${min}`;
 
-    // 2. 抓取農曆，並攔截手機輸出的「數字年」轉成「干支年」
     let lunar = "";
+    let ganzhiStr = "";
+
     try {
-      // 第一部分：單獨查詢農曆「年」
+      // --- 干支基本陣列 ---
+      const stdStems = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
+      const stdBranches = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
+
+      // --- 第一部分：計算農曆年份與年干支 ---
       const fmtYear = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { year: 'numeric' });
-      let lYear = fmtYear.format(now);
-
-      // 強制防呆機制：如果手機的農曆年查出來還是阿拉伯數字，手動計算天干地支
-      if (lYear.includes(yyyy.toString())) {
-        const stems = ["庚", "辛", "壬", "癸", "甲", "乙", "丙", "丁", "戊", "己"];
-        const branches = ["申", "酉", "戌", "亥", "子", "丑", "寅", "卯", "辰", "巳", "午", "未"];
-        lYear = stems[yyyy % 10] + branches[yyyy % 12] + "年";
+      
+      // 找出農曆對應的真實公曆年 (解決跨年前後的農曆年歸屬問題)
+      let relatedYear = yyyy;
+      const yearParts = fmtYear.formatToParts(now);
+      for (let p of yearParts) {
+        if (p.type === 'relatedYear') relatedYear = parseInt(p.value);
       }
+      
+      // 數學推算年干支 (甲子年為 1984 -> 基準偏移量)
+      const ysIdx = (relatedYear - 4 + 100) % 10;
+      const ybIdx = (relatedYear - 4 + 120) % 12;
+      const yearGanzhi = stdStems[ysIdx] + stdBranches[ybIdx];
+      let lYear = yearGanzhi + "年";
 
-      // 第二部分：單獨查詢農曆「月、日」，強制使用純數字，並用 formatToParts 捕捉閏月
+      // --- 第二部分：計算農曆月、日與月干支 ---
       const fmtMD = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { month: 'numeric', day: 'numeric' });
       const parts = fmtMD.formatToParts(now);
 
       let lMonth = "";
       let lDay = "";
+      let mNum = 1;
 
       for (let part of parts) {
         if (part.type === 'month') {
-          // 處理系統底層回傳的閏月標記 ('bis' 或 '閏')
           let mVal = part.value.replace('bis', '').replace('閏', '').replace('月', '');
+          mNum = parseInt(mVal) || 1;
           if (part.value.includes('bis') || part.value.includes('閏')) {
             lMonth = `閏${mVal}月`;
           } else {
@@ -311,17 +321,32 @@
           lDay = `${dVal}日`;
         }
       }
-
-      // 將乾淨的年、月、日組合
       lunar = ` (農曆 ${lYear} ${lMonth}${lDay})`;
+
+      // 月干支計算 (五虎遁口訣：甲己之年丙作首...)
+      const mStartStemIdx = ((ysIdx % 5) * 2 + 2) % 10;
+      const mStemIdx = (mStartStemIdx + mNum - 1) % 10;
+      const mBranchIdx = (2 + mNum - 1) % 12; // 正月建寅(index 2)
+      const monthGanzhi = stdStems[mStemIdx] + stdBranches[mBranchIdx];
+
+      // --- 第三部分：計算日干支 ---
+      // 基準日: 2000年1月1日 是 戊午日 (天干4, 地支6, 總合54)
+      const utcNow = Date.UTC(yyyy, now.getMonth(), now.getDate(), 12, 0, 0);
+      const baseDate = Date.UTC(2000, 0, 1, 12, 0, 0);
+      const diffDays = Math.floor((utcNow - baseDate) / 86400000);
+      const dayIndex = ((diffDays % 60) + 60 + 54) % 60;
+      const dayGanzhi = stdStems[dayIndex % 10] + stdBranches[dayIndex % 12];
+
+      // 組合干支輸出字串
+      ganzhiStr = `\n當日干支：${yearGanzhi}年、${monthGanzhi}月、${dayGanzhi}日`;
+
     } catch (e) {
-      console.log("此設備暫不支援農曆轉換");
+      console.log("此設備暫不支援農曆轉換", e);
     }
 
-    return gregorian + lunar;
+    return gregorian + lunar + ganzhiStr;
   }
-  // -----------------------------------------------------------
-
+ 
   function showMath() {
     const sp = selected.reduce((s, p) => s + p.p, 0);
     const rp = selected.filter(p => p.c === 'red').reduce((s, p) => s + p.p, 0);
