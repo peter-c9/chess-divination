@@ -21,6 +21,17 @@
   .mode-btn { flex: 1; text-align: center; padding: 10px; border-radius: 20px; cursor: pointer; font-weight: bold; }
   .mode-btn.active { background: #555; color: #fff; box-shadow: 0 0 5px rgba(255,255,255,0.2); }
 
+  /* 時間靈動數字區塊 (從下方移至此處的 CSS 設定) */
+  .time-magic-row { display: flex; gap: 10px; width: 100%; margin-bottom: 12px; justify-content: center; }
+  .magic-num { 
+    background: #1a1a1a; color: var(--gold); border: 1px solid var(--gold); 
+    border-radius: 50%; width: 38px; height: 38px; display: flex; 
+    align-items: center; justify-content: center; font-weight: 900; 
+    font-size: 18px; box-shadow: 0 0 8px rgba(255, 215, 0, 0.2); 
+    transition: all 0.3s ease;
+  }
+  .magic-num.update-flash { background: var(--gold); color: #000; transform: scale(1.1); }
+
   /* 32子數字鍵面板：縮小間距與字體，確保 8 欄能完美塞進螢幕不破版 */
   .grid { display: grid; grid-template-columns: repeat(8, 1fr); gap: 4px; margin-bottom: 15px; width: 100%; }
   .card { width: 100%; aspect-ratio: 1/1; text-align: center; display: flex; align-items: center; justify-content: center; cursor: pointer; border: 1px solid #444; border-radius: 4px; font-weight: 900; position: relative; font-size: 24px; transition: 0.2s; box-sizing: border-box; }
@@ -74,12 +85,12 @@
   .btn-action { background: #444; color: white; flex: 1; padding: 12px; font-weight: bold; border-radius: 6px; border: none; cursor: pointer; font-size: 14px; }
   #output { width: 100%; background: #000; color: #fff; border: 1px solid var(--gold); padding: 12px; border-radius: 8px; font-size: 13px; margin-top: 10px; box-sizing: border-box; line-height: 1.6; }
 
-  /* 彈出式表單 Modal (縮小上下留白) */
+  /* 彈出式表單 Modal */
   .modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); display: none; align-items: center; justify-content: center; z-index: 1000; }
   .modal-content { background: #1a1a1a; border: 1px solid var(--gold); border-radius: 8px; padding: 10px 12px; width: 95%; max-width: 450px; color: #fff; position: relative; box-shadow: 0 5px 15px rgba(0,0,0,0.5); max-height: 95vh; overflow-y: auto; }
   .modal-title { text-align: center; color: var(--gold); font-size: 18px; margin-top: 0; margin-bottom: 8px; font-weight: bold; }
   .modal-close { display: block; width: 100%; background: #d32f2f; color: white; text-align: center; padding: 8px; border-radius: 6px; font-weight: bold; cursor: pointer; border: none; margin-top: 10px; font-size: 16px; }
-  
+
 </style>
 </head>
 <body>
@@ -89,6 +100,8 @@
     <div id="mode-draw" class="mode-btn active" onclick="switchMode('draw')">抽卦模式</div>
     <div id="mode-layout" class="mode-btn" onclick="switchMode('layout')">擺卦模式</div>
   </div>
+
+  <div class="time-magic-row" id="time-magic-row"></div>
 
   <div class="grid" id="grid"></div>
 
@@ -190,7 +203,6 @@
   
   let currentMode = 'draw', selected = [];
 
-  // 六爻表單：大幅縮小每格 padding 與間距
   function populateZSTable() {
     let html = '';
     for(let i=1; i<=32; i++) {
@@ -209,7 +221,6 @@
     container.innerHTML = html;
   }
 
-  // 梅花表單：大幅縮小每格 padding 與間距
   function populateMHTable() {
     let html = '';
     mhData.forEach(d => {
@@ -260,13 +271,10 @@
   }
 
   function renderYaoBar(isYang) { return isYang ? '████████' : '███　　███'; }
-// -----------------------------------------------------------
-  // 雙曆穩定的時間格式化函數 (加入純 JS 年月日干支運算)
-  // -----------------------------------------------------------
+
   function getFormattedDate() {
     const now = new Date();
     
-    // 1. 安全抓取標準國曆
     const yyyy = now.getFullYear();
     const mm = String(now.getMonth() + 1).padStart(2, '0');
     const dd = String(now.getDate()).padStart(2, '0');
@@ -278,27 +286,22 @@
     let ganzhiStr = "";
 
     try {
-      // --- 干支基本陣列 ---
       const stdStems = ["甲", "乙", "丙", "丁", "戊", "己", "庚", "辛", "壬", "癸"];
       const stdBranches = ["子", "丑", "寅", "卯", "辰", "巳", "午", "未", "申", "酉", "戌", "亥"];
 
-      // --- 第一部分：計算農曆年份與年干支 ---
       const fmtYear = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { year: 'numeric' });
       
-      // 找出農曆對應的真實公曆年 (解決跨年前後的農曆年歸屬問題)
       let relatedYear = yyyy;
       const yearParts = fmtYear.formatToParts(now);
       for (let p of yearParts) {
         if (p.type === 'relatedYear') relatedYear = parseInt(p.value);
       }
       
-      // 數學推算年干支 (甲子年為 1984 -> 基準偏移量)
       const ysIdx = (relatedYear - 4 + 100) % 10;
       const ybIdx = (relatedYear - 4 + 120) % 12;
       const yearGanzhi = stdStems[ysIdx] + stdBranches[ybIdx];
       let lYear = yearGanzhi + "年";
 
-      // --- 第二部分：計算農曆月、日與月干支 ---
       const fmtMD = new Intl.DateTimeFormat('zh-TW-u-ca-chinese', { month: 'numeric', day: 'numeric' });
       const parts = fmtMD.formatToParts(now);
 
@@ -323,21 +326,17 @@
       }
       lunar = ` \n(農曆 ${lYear} ${lMonth}${lDay})`;
 
-      // 月干支計算 (五虎遁口訣：甲己之年丙作首...)
       const mStartStemIdx = ((ysIdx % 5) * 2 + 2) % 10;
       const mStemIdx = (mStartStemIdx + mNum - 1) % 10;
-      const mBranchIdx = (2 + mNum - 1) % 12; // 正月建寅(index 2)
+      const mBranchIdx = (2 + mNum - 1) % 12; 
       const monthGanzhi = stdStems[mStemIdx] + stdBranches[mBranchIdx];
 
-      // --- 第三部分：計算日干支 ---
-      // 基準日: 2000年1月1日 是 戊午日 (天干4, 地支6, 總合54)
       const utcNow = Date.UTC(yyyy, now.getMonth(), now.getDate(), 12, 0, 0);
       const baseDate = Date.UTC(2000, 0, 1, 12, 0, 0);
       const diffDays = Math.floor((utcNow - baseDate) / 86400000);
       const dayIndex = ((diffDays % 60) + 60 + 54) % 60;
       const dayGanzhi = stdStems[dayIndex % 10] + stdBranches[dayIndex % 12];
 
-      // 組合干支輸出字串
       ganzhiStr = `\n當日干支：${yearGanzhi}年、${monthGanzhi}月、${dayGanzhi}日`;
 
     } catch (e) {
@@ -346,7 +345,7 @@
 
     return gregorian + lunar + ganzhiStr;
   }
- 
+  
   function showMath() {
     const sp = selected.reduce((s, p) => s + p.p, 0);
     const rp = selected.filter(p => p.c === 'red').reduce((s, p) => s + p.p, 0);
@@ -390,7 +389,6 @@
     }
     document.getElementById('mh-graph').innerHTML = mhHtml;
 
-    // 呼叫全新的雙曆函數
     document.getElementById('cur-date').innerText = getFormattedDate();
   }
 
@@ -487,8 +485,39 @@
   populateZSTable(); 
   populateMHTable(); 
   initGrid();
+
+  // -----------------------------------------------------------
+  // 時間靈動數字生成器 (每 5 秒更新)
+  // -----------------------------------------------------------
+  function updateTimeMagicNumbers() {
+    const now = new Date();
+    // 取得年月日時分秒數值加總
+    const timeSum = now.getFullYear() + (now.getMonth() + 1) + now.getDate() + 
+                    now.getHours() + now.getMinutes() + now.getSeconds();
+    
+    const container = document.getElementById('time-magic-row');
+    if (!container) return;
+    
+    let html = '';
+    for(let i = 1; i <= 5; i++) {
+      // 核心演算：利用 timeSum 加上不同乘數與質數，確保 5 個數字不重複且具跳躍性
+      // 取餘數 % 99 再加 1，確保範圍在 1 ~ 99 之間
+      let pseudoRandom = ((timeSum * (i * 13 + 7)) + (i * 101)) % 99 + 1;
+      
+      html += `<div class="magic-num update-flash">${pseudoRandom}</div>`;
+    }
+    container.innerHTML = html;
+
+    // 移除閃爍特效的 class，製造呼吸感
+    setTimeout(() => {
+      const nums = container.querySelectorAll('.magic-num');
+      nums.forEach(el => el.classList.remove('update-flash'));
+    }, 300);
+  }
+
+  // 初始化執行一次，然後設定每 5000 毫秒 (5秒) 執行一次
+  updateTimeMagicNumbers();
+  setInterval(updateTimeMagicNumbers, 5000);
 </script>
 </body>
 </html>
-
-
